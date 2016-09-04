@@ -4,7 +4,6 @@
  */
 
 import java.io.IOException;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -46,7 +45,28 @@ public class PokemonCrawler {
 		    //If the species name has an "explain" abbr, take the child span instead
 		    if (species.charAt(0) == '<')
 			species = pokemonDoc.select("a[title=Pokémon category] > span > span").html().replace(" Pokémon", "");
-		    System.out.println(name + ", " + species + ", " + type1 + "/" + type2);
+		    
+		    /*
+		     * Takes the first stat table available even though they may not be the current stats due to stat increases in generation 6
+		     * 
+		     * These Pokemon received a 10 point stat increase: Butterfree, Beedrill, Pidgeot, Raichu, Nidoqueen, 
+		     * Nidoking, Clefable, Wigglytuff, Vileplume, Poliwrath, Alakazam, Victreebel, Golem, Ampharos, 
+		     * Bellossom, Azumarill, Jumpluff, Beautifly, Exploud, Staraptor, Roserade, Stoutland, Unfezant, 
+		     * Gigalith, Seismitoad, Leavanny, Scolipede, and Krookodile.
+		     * 
+		     * Pikachu recieved a 20 point stat increase.
+		     * 
+		     * Will throw an error for the newer Pokemon for which stats are not yet revealed
+		     */
+		    Element statsTable = pokemonDoc.select("table[align=left]").first();
+		    Element statRow = statsTable.select("tr:eq(2)").first();
+		    String stats = "";
+		    for (int i = 0; i < 6; i++) {
+			String stat = statRow.select("td > table > tbody > tr > th:eq(1)").first().html();
+			stats += stat + ", ";
+			statRow = statRow.nextElementSibling();
+		    }
+		    System.out.println(name + ", " + species + ", " + type1 + "/" + type2 + ", " + stats);
 		}
 	    }
 	} catch (IOException e) {
