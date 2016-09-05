@@ -3,7 +3,12 @@
  * @author: Philip Yoo (philipsdyoo)
  */
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,6 +18,14 @@ public class PokemonCrawler {
 
     public static void main(String[] args) {
 	String startURL = "http://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_National_Pok%C3%A9dex_number";
+	PrintWriter pokemonCSV = null;
+	try {
+	    pokemonCSV = new PrintWriter("pokemon.csv", "UTF-8");
+	} catch (FileNotFoundException e1) {
+	    e1.printStackTrace();
+	} catch (UnsupportedEncodingException e1) {
+	    e1.printStackTrace();
+	}
 	try {
 	    //Connect to the Pokemon List page and set the timeout to 60 seconds
 	    Document doc = Jsoup.connect(startURL).timeout(60*1000).get();
@@ -41,10 +54,10 @@ public class PokemonCrawler {
 		    Document pokemonDoc = Jsoup.connect(url).timeout(60*1000).get();
 		    
 		    //Species name
-		    String species = pokemonDoc.select("a[title=Pokémon category] > span").html().replace(" Pokémon", "");
+		    String species = pokemonDoc.select("a[title=Pokémon category] > span").first().html().replace(" Pokémon", "");
 		    //If the species name has an "explain" abbr, take the child span instead
 		    if (species.charAt(0) == '<')
-			species = pokemonDoc.select("a[title=Pokémon category] > span > span").html().replace(" Pokémon", "");
+			species = pokemonDoc.select("a[title=Pokémon category] > span > span").first().html().replace(" Pokémon", "");
 		    
 		    /*
 		     * Takes the first stat table available even though they may not be the current stats due to stat increases in generation 6
@@ -66,12 +79,33 @@ public class PokemonCrawler {
 			stats += stat + ", ";
 			statRow = statRow.nextElementSibling();
 		    }
-		    System.out.println(name + ", " + species + ", " + type1 + "/" + type2 + ", " + stats);
+		    
+		    //Collects abilities of the Pokemon both regular and hidden
+		    Element abilitiesTable = pokemonDoc.select("a[title=Ability]").first().parent().parent().child(1);
+		    //Excludes Mega Pokemon Abilities; to include Mega Abilities use the following line instead:
+		    //Elements abilities = abilitiesTable.select("tr > td");
+		    Elements abilities = abilitiesTable.select("tr").first().select("td");
+		    ArrayList<String> abilitiesList = new ArrayList<String>();
+		    for (Element ability: abilities) {
+			String abilityName = ability.select("a > span").first().html();
+			
+			//Ignore unimplemented Cacophony ability and empty Strings
+			if (!abilityName.equals("Cacophony") && !abilityName.isEmpty())
+			    abilitiesList.add(abilityName);
+		    }
+		    //Join the list of abilities delimited with a pipe
+		    String joinedAbilities = "["+String.join(" | ", abilitiesList)+"]";
+		    String pokemonLine = name + ", " + species + ", " + type1 + "/" + type2 + ", " + stats + joinedAbilities;
+		    System.out.println(pokemonLine);
+		    pokemonCSV.println(pokemonLine);
+		    pokemonCSV.flush();
 		}
 	    }
 	} catch (IOException e) {
 	    System.err.println("Could not connect to provided URL: " + startURL);
 	    //e.printStackTrace();
+	    pokemonCSV.close();
 	}
+	pokemonCSV.close();
     }
 }
