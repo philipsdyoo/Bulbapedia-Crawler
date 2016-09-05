@@ -21,6 +21,8 @@ public class PokemonCrawler {
 	PrintWriter pokemonCSV = null;
 	try {
 	    pokemonCSV = new PrintWriter("pokemon.csv", "UTF-8");
+	    pokemonCSV.println("Name, Species, Type(s), HP, Attack, Defense, Sp. Attack, Sp. Defense, Speed, Abilities");
+	    pokemonCSV.flush();
 	} catch (FileNotFoundException e1) {
 	    e1.printStackTrace();
 	} catch (UnsupportedEncodingException e1) {

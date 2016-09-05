@@ -1,3 +1,4 @@
+Name, Species, Type(s), HP, Attack, Defense, Sp. Attack, Sp. Defense, Speed, Abilities
 Bulbasaur, Seed, Grass/Poison, 45, 49, 49, 65, 65, 45, [Overgrow | Chlorophyll]
 Ivysaur, Seed, Grass/Poison, 60, 62, 63, 80, 80, 60, [Overgrow | Chlorophyll]
 Venusaur, Seed, Grass/Poison, 80, 82, 83, 100, 100, 80, [Overgrow | Chlorophyll]
